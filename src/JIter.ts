@@ -1,29 +1,20 @@
 export class JIter<T> implements Iterable<T> {
     private source: Iterable<T>;
-    private chain: Iterable<Object>[] = [];
 
-    public static CREATE<T>(iterable: Iterable<T>): JIter<T> {
+    public static create<T>(iterable: Iterable<T>): JIter<T> {
         return new JIter<T>(iterable);
     }
 
     private constructor(source: Iterable<T>) {
         this.source = source;
-        this.chain.push(source);
     }
 
     public filter(predicate: (item: T) => boolean): JIter<T> {
-        this.source = filter(this.source, predicate);
-        this.chain.push(this.source);
-        return this;
+        return new JIter(filter(this.source, predicate));
     }
 
     public map<TResult>(mapFn: (item: T) => TResult): JIter<TResult> {
-        // We are forcibly changing our own type signature here
-        // tslint:disable-next-line:no-any prefer-type-cast
-        const other = this as any as JIter<TResult>;
-        other.source = map(this.source, mapFn);
-        other.chain.push(other.source);
-        return other;
+        return new JIter(map(this.source, mapFn));
     }
 
     public reduce<TResult>(reduceFn: (prev: TResult, current: T) => TResult, initial: TResult): TResult {
@@ -35,9 +26,7 @@ export class JIter<T> implements Iterable<T> {
     }
 
     public distinct(): JIter<T> {
-        this.source = distinct(this.source);
-        this.chain.push(this.source);
-        return this;
+        return new JIter(distinct(this.source));
     }
 
     public join<TOuter, TKey, TResult>(
@@ -46,12 +35,7 @@ export class JIter<T> implements Iterable<T> {
         outerKeyFn: (item: TOuter) => TKey,
         joinFn: (inner: T, outer: TOuter) => TResult
     ): JIter<TResult> {
-        // We are forcibly changing our own type signature here
-        // tslint:disable-next-line:no-any prefer-type-cast
-        const other = this as any as JIter<TResult>;
-        other.source = join(this.source, outer, innerKeyFn, outerKeyFn, joinFn);
-        other.chain.push(other.source);
-        return other;
+        return new JIter(join(this.source, outer, innerKeyFn, outerKeyFn, joinFn));
     }
 
     // This needs to be Symbol.iterator()
