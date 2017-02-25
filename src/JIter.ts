@@ -46,7 +46,7 @@ export class JIter<T> implements Iterable<T> {
     }
 
     public orderBy(compareFn: CompareFn<T>): JOrderingIter<T> {
-        return new JOrderingIter<T>(this.source, [compareFn]);
+        return new JOrderingIter(this, [compareFn]);
     }
 
     public join<TOuter, TKey, TResult>(
