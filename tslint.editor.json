@@ -1,0 +1,7 @@
+{
+    "extends": ["./tslint.json"],
+    "rules": {
+        "no-for-in-array": false,
+        "restrict-plus-operands": false
+    }
+}

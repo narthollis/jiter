@@ -1,0 +1,22 @@
+{
+  "name": "jiter",
+  "version": "1.0.0",
+  "description": "Chainable Iterator operations",
+  "main": "src/index.ts",
+  "repository": "https://github.com/narthollis/jiter.git",
+  "author": "Nicholas Steicke <nicholas.steicke@narthollis.net>",
+  "license": "BSD-3-Clause",
+  "scripts": {
+    "lint": "tslint",
+    "test": "jest --config ./jest.config.json"
+  },
+  "devDependencies": {
+    "@types/jest": "^18.1.1",
+    "jest": "^19.0.2",
+    "ts-jest": "^19.0.0",
+    "tslint": "^4.4.2",
+    "tslint-microsoft-contrib": "^4.0.0",
+    "typescript": "2.1.1"
+  },
+  "dependencies": {}
+}
