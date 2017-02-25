@@ -1,3 +1,5 @@
+type Projection<T, TProjection> = (item: T) => TProjection;
+
 export class JIter<T> implements Iterable<T> {
     protected source: Iterable<T>;
 
@@ -9,12 +11,16 @@ export class JIter<T> implements Iterable<T> {
         this.source = source;
     }
 
-    public filter(predicate: (item: T) => boolean): JIter<T> {
+    public filter(predicate: Projection<T, boolean>): JIter<T> {
         return new JIter(filter(this.source, predicate));
     }
 
-    public map<TResult>(mapFn: (item: T) => TResult): JIter<TResult> {
+    public map<TResult>(mapFn: Projection<T, TResult>): JIter<TResult> {
         return new JIter(map(this.source, mapFn));
+    }
+
+    public flatMap<TResult>(mapFn: Projection<T, Iterable<TResult>>) {
+        return new JIter(flatMap(this.source, mapFn));
     }
 
     public reduce<TResult>(reduceFn: (prev: TResult, current: T) => TResult, initial: TResult): TResult {
@@ -33,7 +39,7 @@ export class JIter<T> implements Iterable<T> {
         return new JIter(skip(this.source, count));
     }
 
-    public skipWhile(whileFn: (item: T) => boolean): JIter<T> {
+    public skipWhile(whileFn: Projection<T, boolean>): JIter<T> {
         return new JIter(skipWhile(this.source, whileFn));
     }
 
@@ -41,12 +47,16 @@ export class JIter<T> implements Iterable<T> {
         return new JIter(take(this.source, count));
     }
 
-    public takeWhile(whileFn: (item: T) => boolean): JIter<T> {
+    public takeWhile(whileFn: Projection<T, boolean>): JIter<T> {
         return new JIter(takeWhile(this.source, whileFn));
     }
 
-    public orderBy(compareFn: CompareFn<T>): JOrderingIter<T> {
+    public orderBy(compareFn: Comparator<T>): JOrderingIter<T> {
         return new JOrderingIter(this, [compareFn]);
+    }
+
+    public groupBy<TKey>(keyFn: Projection<T, TKey>): JIter<IGrouping<TKey, T>> {
+        return new JIter(groupBy(this.source, keyFn));
     }
 
     public join<TOuter, TKey, TResult>(
@@ -58,6 +68,15 @@ export class JIter<T> implements Iterable<T> {
         return new JIter(join(this.source, outer, innerKeyFn, outerKeyFn, joinFn));
     }
 
+    public groupJoin<TOuter, TKey, TResult>(
+        outer: Iterable<TOuter>,
+        innerKeyFn: (item: T) => TKey,
+        outerKeyFn: (item: TOuter) => TKey,
+        joinFn: (inner: T, outer: Iterable<TOuter>) => TResult
+    ): JIter<TResult> {
+        return new JIter(groupJoin(this.source, outer, innerKeyFn, outerKeyFn, joinFn));
+    }
+
     // This needs to be Symbol.iterator()
     // tslint:disable-next-line:function-name
     public [Symbol.iterator]() {
@@ -65,17 +84,17 @@ export class JIter<T> implements Iterable<T> {
     }
 }
 
-type CompareFn<T> = (a: T, b: T) => number;
+type Comparator<T> = (a: T, b: T) => number;
 
 class JOrderingIter<T> extends JIter<T> {
-    private comparators: CompareFn<T>[];
+    private comparators: Comparator<T>[];
 
-    constructor(source: Iterable<T>, comparators: CompareFn<T>[]) {
+    constructor(source: Iterable<T>, comparators: Comparator<T>[]) {
         super(source);
         this.comparators = comparators;
     }
 
-    public thenBy(comparator: CompareFn<T>) {
+    public thenBy(comparator: Comparator<T>) {
         return new JOrderingIter(this.source, [...this.comparators, comparator]);
     }
 
@@ -97,7 +116,42 @@ class JOrderingIter<T> extends JIter<T> {
     }
 }
 
-function *filter<T>(source: Iterable<T>, predicate: (item: T) => boolean) {
+interface IGrouping<TKey, T> extends Iterable<T> {
+    key: TKey;
+}
+
+class Grouping<TKey, T> implements IGrouping<TKey, T> {
+    public key: TKey;
+    private items: T[];
+
+    public constructor(key: TKey, items: T[]) {
+        this.key = key;
+        this.items = items;
+    }
+
+    // This needs to be Symbol.iterator()
+    // tslint:disable-next-line:function-name
+    public [Symbol.iterator]() {
+        return this.items[Symbol.iterator]();
+    }
+}
+
+export function *groupBy<T, TKey>(source: Iterable<T>, keyFn: (item: T) => TKey): Iterable<IGrouping<TKey, T>> {
+    const map = new Map<TKey, T[]>();
+    for (const item of source) {
+        const key = keyFn(item);
+        let group = map.get(key);
+        if (group === undefined) {
+            group = [];
+            map.set(key, group);
+        }
+    }
+    for (const [key, values] of map) {
+        yield new Grouping(key, values);
+    }
+}
+
+export function *filter<T>(source: Iterable<T>, predicate: (item: T) => boolean): Iterable<T> {
     for (const item of source) {
         if (predicate(item)) {
             yield item;
@@ -105,19 +159,25 @@ function *filter<T>(source: Iterable<T>, predicate: (item: T) => boolean) {
     }
 }
 
-function *map<TInput, TOutput>(source: Iterable<TInput>, mapFn: (item: TInput) => TOutput) {
+export function *map<TInput, TOutput>(source: Iterable<TInput>, mapFn: (item: TInput) => TOutput): Iterable<TOutput> {
     for (const item of source) {
         yield mapFn(item);
     }
 }
 
-function *join<TInner, TOuter, TKey, TResult>(
+export function *flatMap<T, TResult>(source: Iterable<T>, projection: Projection<T, Iterable<TResult>>): Iterable<TResult> {
+    for (const item of source) {
+        yield *projection(item);
+    }
+}
+
+export function *join<TInner, TOuter, TKey, TResult>(
     inner: Iterable<TInner>,
     outer: Iterable<TOuter>,
     innerKeyFn: (item: TInner) => TKey,
     outerKeyFn: (item: TOuter) => TKey,
     joinFn: (inner: TInner, outer: TOuter) => TResult
-) {
+): Iterable<TResult> {
     const innerMap = new Map<TKey, TInner[]>();
     const outerMap = new Map<TKey, TOuter[]>();
 
@@ -147,7 +207,38 @@ function *join<TInner, TOuter, TKey, TResult>(
     }
 }
 
-function *distinct<T>(source: Iterable<T>) {
+export function *groupJoin<TInner, TOuter, TKey, TResult>(
+    inner: Iterable<TInner>,
+    outer: Iterable<TOuter>,
+    innerKeyFn: (item: TInner) => TKey,
+    outerKeyFn: (item: TOuter) => TKey,
+    joinFn: (inner: TInner, outer: Iterable<TOuter>) => TResult
+): Iterable<TResult> {
+    const innerMap = new Map<TKey, TInner[]>();
+    const outerMap = new Map<TKey, TOuter[]>();
+
+    for (const item of inner) {
+        const key = innerKeyFn(item);
+        const array = innerMap.get(key) || [];
+        array.push(item);
+        innerMap.set(key, array);
+    }
+    for (const item of outer) {
+        const key = outerKeyFn(item);
+        const array = outerMap.get(key) || [];
+        array.push(item);
+        outerMap.set(key, array);
+    }
+
+    for (const [key, innerArray] of innerMap) {
+        const outerArray = outerMap.get(key) || [];
+        for (const innerItem of innerArray) {
+            yield joinFn(innerItem, outerArray);
+        }
+    }
+}
+
+export function *distinct<T>(source: Iterable<T>) {
     const $set = new Set<T>();
     for (const item of source) {
         if ($set.has(item)) {
@@ -158,7 +249,7 @@ function *distinct<T>(source: Iterable<T>) {
     }
 }
 
-function *take<T>(source: Iterable<T>, count: number): Iterable<T> {
+export function *take<T>(source: Iterable<T>, count: number): Iterable<T> {
     const iterator = source[Symbol.iterator]();
     for (let i = 0; i < count; i += 1) {
         const item = iterator.next();
@@ -169,7 +260,7 @@ function *take<T>(source: Iterable<T>, count: number): Iterable<T> {
     }
 }
 
-function *takeWhile<T>(source: Iterable<T>, whileFn: (item: T) => boolean): Iterable<T> {
+export function *takeWhile<T>(source: Iterable<T>, whileFn: (item: T) => boolean): Iterable<T> {
     for (const item of source) {
         if (whileFn(item)) {
             yield item;
@@ -179,7 +270,7 @@ function *takeWhile<T>(source: Iterable<T>, whileFn: (item: T) => boolean): Iter
     }
 }
 
-function *skip<T>(source: Iterable<T>, count: number): Iterable<T> {
+export function *skip<T>(source: Iterable<T>, count: number): Iterable<T> {
     const iterator = source[Symbol.iterator]();
     for (let i = 0; i < count; i += 1) {
         const item = iterator.next();
@@ -194,7 +285,7 @@ function *skip<T>(source: Iterable<T>, count: number): Iterable<T> {
     }
 }
 
-function *skipWhile<T>(source: Iterable<T>, whileFn: (item: T) => boolean): Iterable<T> {
+export function *skipWhile<T>(source: Iterable<T>, whileFn: (item: T) => boolean): Iterable<T> {
     let skipping = true;
     for (const item of source) {
         if (skipping && whileFn(item)) {
