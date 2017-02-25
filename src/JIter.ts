@@ -183,13 +183,21 @@ export function *join<TInner, TOuter, TKey, TResult>(
 
     for (const item of inner) {
         const key = innerKeyFn(item);
-        const array = innerMap.get(key) || [];
+        let array = innerMap.get(key);
+        if (array === undefined) {
+            array = [];
+            innerMap.set(key, array);
+        }
         array.push(item);
         innerMap.set(key, array);
     }
     for (const item of outer) {
         const key = outerKeyFn(item);
-        const array = outerMap.get(key) || [];
+        let array = outerMap.get(key);
+        if (array === undefined) {
+            array = [];
+            outerMap.set(key, array);
+        }
         array.push(item);
         outerMap.set(key, array);
     }
@@ -219,13 +227,21 @@ export function *groupJoin<TInner, TOuter, TKey, TResult>(
 
     for (const item of inner) {
         const key = innerKeyFn(item);
-        const array = innerMap.get(key) || [];
+        let array = innerMap.get(key);
+        if (array === undefined) {
+            array = [];
+            innerMap.set(key, array);
+        }
         array.push(item);
         innerMap.set(key, array);
     }
     for (const item of outer) {
         const key = outerKeyFn(item);
-        const array = outerMap.get(key) || [];
+        let array = outerMap.get(key);
+        if (array === undefined) {
+            array = [];
+            outerMap.set(key, array);
+        }
         array.push(item);
         outerMap.set(key, array);
     }
