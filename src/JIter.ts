@@ -55,6 +55,10 @@ export class JIter<T> implements Iterable<T> {
         return new JOrderingIter(this, [compareFn]);
     }
 
+    public orderByDescending(compareFn: Comparator<T>): JOrderingIter<T> {
+        return new JOrderingIter(this, [descending(compareFn)]);
+    }
+
     public groupBy<TKey>(keyFn: Projection<T, TKey>): JIter<IGrouping<TKey, T>> {
         return new JIter(groupBy(this.source, keyFn));
     }
@@ -98,6 +102,10 @@ class JOrderingIter<T> extends JIter<T> {
         return new JOrderingIter(this.source, [...this.comparators, comparator]);
     }
 
+    public thenByDescending(comparator: Comparator<T>) {
+        return new JOrderingIter(this.source, [...this.comparators, descending(comparator)]);
+    }
+
     // This needs to be Symbol.iterator()
     // tslint:disable-next-line:function-name
     public *[Symbol.iterator]() {
@@ -114,6 +122,10 @@ class JOrderingIter<T> extends JIter<T> {
         });
         yield *list;
     }
+}
+
+function descending<T>(comparator: Comparator<T>): Comparator<T> {
+    return (a, b) => comparator(b, a);
 }
 
 interface IGrouping<TKey, T> extends Iterable<T> {
