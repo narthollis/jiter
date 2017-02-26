@@ -8,7 +8,7 @@
   "license": "BSD-3-Clause",
   "scripts": {
     "lint": "tslint",
-    "test": "jest --config ./jest.config.json"
+    "test": "jest --no-cache --config ./jest.config.json"
   },
   "devDependencies": {
     "@types/jest": "^18.1.1",
