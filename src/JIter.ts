@@ -1,4 +1,5 @@
 type Projection<T, TProjection> = (item: T) => TProjection;
+type IndexProjection<T, TProjection> = (item: T, index: number) => TProjection;
 
 export class JIter<T> implements Iterable<T> {
     protected source: Iterable<T>;
@@ -11,22 +12,24 @@ export class JIter<T> implements Iterable<T> {
         this.source = source;
     }
 
-    public filter(predicate: Projection<T, boolean>): JIter<T> {
+    public filter(predicate: IndexProjection<T, boolean>): JIter<T> {
         return new JIter(filter(this.source, predicate));
     }
 
-    public map<TResult>(mapFn: Projection<T, TResult>): JIter<TResult> {
+    public map<TResult>(mapFn: IndexProjection<T, TResult>): JIter<TResult> {
         return new JIter(map(this.source, mapFn));
     }
 
-    public flatMap<TResult>(mapFn: Projection<T, Iterable<TResult>>) {
+    public flatMap<TResult>(mapFn: IndexProjection<T, Iterable<TResult>>): JIter<TResult> {
         return new JIter(flatMap(this.source, mapFn));
     }
 
-    public reduce<TResult>(reduceFn: (prev: TResult, current: T) => TResult, initial: TResult): TResult {
+    public reduce<TResult>(reduceFn: (prev: TResult, current: T, index: number) => TResult, initial: TResult): TResult {
         let reduction = initial;
+        let i = -1;
         for (const item of this.source) {
-            reduction = reduceFn(reduction, item);
+            i += 1;
+            reduction = reduceFn(reduction, item, i);
         }
         return reduction;
     }
@@ -39,7 +42,7 @@ export class JIter<T> implements Iterable<T> {
         return new JIter(skip(this.source, count));
     }
 
-    public skipWhile(whileFn: Projection<T, boolean>): JIter<T> {
+    public skipWhile(whileFn: IndexProjection<T, boolean>): JIter<T> {
         return new JIter(skipWhile(this.source, whileFn));
     }
 
@@ -47,7 +50,7 @@ export class JIter<T> implements Iterable<T> {
         return new JIter(take(this.source, count));
     }
 
-    public takeWhile(whileFn: Projection<T, boolean>): JIter<T> {
+    public takeWhile(whileFn: IndexProjection<T, boolean>): JIter<T> {
         return new JIter(takeWhile(this.source, whileFn));
     }
 
@@ -163,23 +166,29 @@ export function *groupBy<T, TKey>(source: Iterable<T>, keyFn: (item: T) => TKey)
     }
 }
 
-export function *filter<T>(source: Iterable<T>, predicate: (item: T) => boolean): Iterable<T> {
+export function *filter<T>(source: Iterable<T>, predicate: IndexProjection<T, boolean>): Iterable<T> {
+    let i = -1;
     for (const item of source) {
-        if (predicate(item)) {
+        i += 1;
+        if (predicate(item, i)) {
             yield item;
         }
     }
 }
 
-export function *map<TInput, TOutput>(source: Iterable<TInput>, mapFn: (item: TInput) => TOutput): Iterable<TOutput> {
+export function *map<TInput, TOutput>(source: Iterable<TInput>, mapFn: IndexProjection<TInput, TOutput>): Iterable<TOutput> {
+    let i = -1;
     for (const item of source) {
-        yield mapFn(item);
+        i += 1;
+        yield mapFn(item, i);
     }
 }
 
-export function *flatMap<T, TResult>(source: Iterable<T>, projection: Projection<T, Iterable<TResult>>): Iterable<TResult> {
+export function *flatMap<T, TResult>(source: Iterable<T>, projection: IndexProjection<T, Iterable<TResult>>): Iterable<TResult> {
+    let i = -1;
     for (const item of source) {
-        yield *projection(item);
+        i += 1;
+        yield *projection(item, i);
     }
 }
 
@@ -288,9 +297,11 @@ export function *take<T>(source: Iterable<T>, count: number): Iterable<T> {
     }
 }
 
-export function *takeWhile<T>(source: Iterable<T>, whileFn: (item: T) => boolean): Iterable<T> {
+export function *takeWhile<T>(source: Iterable<T>, whileFn: IndexProjection<T, boolean>): Iterable<T> {
+    let i = -1;
     for (const item of source) {
-        if (whileFn(item)) {
+        i += 1;
+        if (whileFn(item, i)) {
             yield item;
         } else {
             return;
@@ -313,10 +324,12 @@ export function *skip<T>(source: Iterable<T>, count: number): Iterable<T> {
     }
 }
 
-export function *skipWhile<T>(source: Iterable<T>, whileFn: (item: T) => boolean): Iterable<T> {
+export function *skipWhile<T>(source: Iterable<T>, whileFn: IndexProjection<T, boolean>): Iterable<T> {
     let skipping = true;
+    let i = -1;
     for (const item of source) {
-        if (skipping && whileFn(item)) {
+        i += 1;
+        if (skipping && whileFn(item, i)) {
             continue;
         } else {
             skipping = false;
