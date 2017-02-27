@@ -66,6 +66,10 @@ export class JIter<T> implements Iterable<T> {
         return new JIter(groupBy(this.source, keyFn));
     }
 
+    public reverse(): JIter<T> {
+        return new JIter(reverse(this.source));
+    }
+
     public join<TOuter, TKey, TResult>(
         outer: Iterable<TOuter>,
         innerKeyFn: (item: T) => TKey,
@@ -335,5 +339,12 @@ export function *skipWhile<T>(source: Iterable<T>, whileFn: IndexProjection<T, b
             skipping = false;
             yield item;
         }
+    }
+}
+
+export function *reverse<T>(source: Iterable<T>): Iterable<T> {
+    const buffer = Array.from(source);
+    while (buffer.length > 0) {
+        yield buffer.pop()!;
     }
 }
