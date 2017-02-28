@@ -8,15 +8,33 @@
   "license": "BSD-3-Clause",
   "scripts": {
     "lint": "tslint",
-    "test": "jest --no-cache --config ./jest.config.json"
+    "test": "jest --no-cache --config ./jest.config.json",
+    "clean": "rimraf benchmark/dist"
   },
   "devDependencies": {
+    "@types/benchmark": "^1.0.30",
     "@types/jest": "^18.1.1",
+    "@types/lodash": "^4.14.53",
+    "@types/node": "^7.0.5",
+    "babel-core": "^6.23.1",
+    "babel-loader": "^6.3.2",
+    "babel-polyfill": "^6.23.0",
+    "babel-preset-es2015": "^6.22.0",
+    "benchmark": "^2.1.3",
+    "copy-webpack-plugin": "^4.0.1",
+    "html-webpack-include-assets-plugin": "^0.0.4",
     "jest": "^19.0.2",
+    "lodash": "^4.17.4",
+    "microtime": "^2.1.2",
+    "npm-run-all": "^4.0.2",
+    "rimraf": "^2.6.1",
     "ts-jest": "^19.0.0",
+    "ts-loader": "^2.0.1",
     "tslint": "^4.4.2",
     "tslint-microsoft-contrib": "^4.0.0",
-    "typescript": "^2.2.1"
+    "typescript": "^2.2.1",
+    "webpack": "^2.2.1",
+    "webpack-html-plugin": "^0.1.1"
   },
   "dependencies": {}
 }
