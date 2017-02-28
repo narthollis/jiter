@@ -203,19 +203,8 @@ export function *join<TInner, TOuter, TKey, TResult>(
     outerKeyFn: (item: TOuter) => TKey,
     joinFn: (inner: TInner, outer: TOuter) => TResult
 ): Iterable<TResult> {
-    const innerMap = new Map<TKey, TInner[]>();
     const outerMap = new Map<TKey, TOuter[]>();
 
-    for (const item of inner) {
-        const key = innerKeyFn(item);
-        let array = innerMap.get(key);
-        if (array === undefined) {
-            array = [];
-            innerMap.set(key, array);
-        }
-        array.push(item);
-        innerMap.set(key, array);
-    }
     for (const item of outer) {
         const key = outerKeyFn(item);
         let array = outerMap.get(key);
@@ -227,15 +216,14 @@ export function *join<TInner, TOuter, TKey, TResult>(
         outerMap.set(key, array);
     }
 
-    for (const [key, innerArray] of innerMap) {
+    for (const item of inner) {
+        const key = innerKeyFn(item);
         const outerArray = outerMap.get(key);
         if (outerArray === undefined) {
             continue;
         }
-        for (const innerItem of innerArray) {
-            for (const outerItem of outerArray) {
-                yield joinFn(innerItem, outerItem);
-            }
+        for (let i = 0 ; i < outerArray.length ; i += 1) {
+            yield joinFn(item, outerArray[i]);
         }
     }
 }
@@ -247,19 +235,8 @@ export function *groupJoin<TInner, TOuter, TKey, TResult>(
     outerKeyFn: (item: TOuter) => TKey,
     joinFn: (inner: TInner, outer: Iterable<TOuter>) => TResult
 ): Iterable<TResult> {
-    const innerMap = new Map<TKey, TInner[]>();
     const outerMap = new Map<TKey, TOuter[]>();
 
-    for (const item of inner) {
-        const key = innerKeyFn(item);
-        let array = innerMap.get(key);
-        if (array === undefined) {
-            array = [];
-            innerMap.set(key, array);
-        }
-        array.push(item);
-        innerMap.set(key, array);
-    }
     for (const item of outer) {
         const key = outerKeyFn(item);
         let array = outerMap.get(key);
@@ -271,11 +248,10 @@ export function *groupJoin<TInner, TOuter, TKey, TResult>(
         outerMap.set(key, array);
     }
 
-    for (const [key, innerArray] of innerMap) {
+    for (const item of inner) {
+        const key = innerKeyFn(item);
         const outerArray = outerMap.get(key) || [];
-        for (const innerItem of innerArray) {
-            yield joinFn(innerItem, outerArray);
-        }
+        yield joinFn(item, outerArray);
     }
 }
 
