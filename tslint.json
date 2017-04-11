@@ -1,4 +1,7 @@
 {
+    "lintOptions": {
+        "typeCheck": true
+    },
     "extends": [
         "./node_modules/tslint-microsoft-contrib/tslint.json"
     ],
@@ -6,6 +9,12 @@
         "./node_modules/tslint-microsoft-contrib"
     ],
     "rules": {
-        "missing-jsdoc": false
+        "typedef": [
+            true,
+            "parameter",
+            "property-declaration",
+            "member-variable-declaration"
+        ],
+        "no-inferrable-types": true
     }
 }

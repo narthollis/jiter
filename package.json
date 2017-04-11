@@ -7,16 +7,16 @@
   "author": "Nicholas Steicke <nicholas.steicke@narthollis.net>",
   "license": "BSD-3-Clause",
   "scripts": {
-    "lint": "tslint",
+    "lint": "tslint --format stylish --type-check -c tslint.json --project tsconfig.json",
     "test": "jest --no-cache --config ./jest.config.json"
   },
   "devDependencies": {
-    "@types/jest": "^18.1.1",
+    "@types/jest": "^19.2.2",
     "jest": "^19.0.2",
-    "ts-jest": "^19.0.0",
-    "tslint": "^4.4.2",
-    "tslint-microsoft-contrib": "^4.0.0",
-    "typescript": "^2.2.1"
+    "ts-jest": "^19.0.8",
+    "tslint": "<5.0.0",
+    "tslint-microsoft-contrib": "^4.0.1",
+    "typescript": "^2.2.2"
   },
   "dependencies": {}
 }
