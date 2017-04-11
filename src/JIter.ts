@@ -1,15 +1,19 @@
 type Projection<T, TProjection> = (item: T) => TProjection;
 type IndexProjection<T, TProjection> = (item: T, index: number) => TProjection;
 
+/**
+ * JIter wraps an iterable for perfoming just-in-time collection manipluations
+ * @template Iterable<T>
+ */
 export class JIter<T> implements Iterable<T> {
     protected source: Iterable<T>;
-
-    public static create<T>(iterable: Iterable<T>): JIter<T> {
-        return new JIter<T>(iterable);
-    }
-
+ 
     protected constructor(source: Iterable<T>) {
         this.source = source;
+    }
+
+    public static CREATE<T>(iterable: Iterable<T>): JIter<T> {
+        return new JIter<T>(iterable);
     }
 
     public filter(predicate: IndexProjection<T, boolean>): JIter<T> {
@@ -90,7 +94,7 @@ export class JIter<T> implements Iterable<T> {
 
     // This needs to be Symbol.iterator()
     // tslint:disable-next-line:function-name
-    public [Symbol.iterator]() {
+    public [Symbol.iterator](): Iterator<T> {
         return this.source[Symbol.iterator]();
     }
 }
@@ -105,17 +109,17 @@ class JOrderingIter<T> extends JIter<T> {
         this.comparators = comparators;
     }
 
-    public thenBy(comparator: Comparator<T>) {
+    public thenBy(comparator: Comparator<T>): JOrderingIter<T> {
         return new JOrderingIter(this.source, [...this.comparators, comparator]);
     }
 
-    public thenByDescending(comparator: Comparator<T>) {
+    public thenByDescending(comparator: Comparator<T>): JOrderingIter<T> {
         return new JOrderingIter(this.source, [...this.comparators, descending(comparator)]);
     }
 
     // This needs to be Symbol.iterator()
     // tslint:disable-next-line:function-name
-    public *[Symbol.iterator]() {
+    public *[Symbol.iterator](): Iterator<T> {
         const list = Array.from(this.source);
         list.sort((a, b) => {
             let result = 0;
@@ -222,8 +226,9 @@ export function *join<TInner, TOuter, TKey, TResult>(
         if (outerArray === undefined) {
             continue;
         }
-        for (let i = 0 ; i < outerArray.length ; i += 1) {
-            yield joinFn(item, outerArray[i]);
+
+        for (const outerItem of outerArray) {
+            yield joinFn(item, outerItem);
         }
     }
 }
@@ -250,8 +255,8 @@ export function *groupJoin<TInner, TOuter, TKey, TResult>(
 
     for (const item of inner) {
         const key = innerKeyFn(item);
-        const outerArray = outerMap.get(key) || [];
-        yield joinFn(item, outerArray);
+        const outerArray = outerMap.get(key);
+        yield joinFn(item, (outerArray != null ? outerArray : []));
     }
 }
 

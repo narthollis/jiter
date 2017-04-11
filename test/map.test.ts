@@ -4,7 +4,7 @@ describe('JIter.map', () => {
     it('should not execute immediately', () => {
         const source = [0, 1, 2];
         const fn = jest.fn();
-        JIter.create(source).map(fn);
+        JIter.CREATE(source).map(fn);
 
         expect(fn).toHaveBeenCalledTimes(0);
     });
@@ -12,7 +12,7 @@ describe('JIter.map', () => {
     it('should execute the map function exactly once per source item', () => {
         const source = [0, 1, 2];
         const fn = jest.fn(String);
-        Array.from(JIter.create(source).map(fn));
+        Array.from(JIter.CREATE(source).map(fn));
 
         expect(fn).toHaveBeenCalledTimes(source.length);
     });
@@ -20,7 +20,7 @@ describe('JIter.map', () => {
     it('should execute the callback in source order', () => {
         const source = [0, 1, 2];
         const fn = jest.fn((n: number, i: number) => expect(i).toBe(n));
-        Array.from(JIter.create(source).map(fn));
+        Array.from(JIter.CREATE(source).map(fn));
 
         expect(fn).toHaveBeenCalledTimes(source.length);
     });
@@ -28,7 +28,7 @@ describe('JIter.map', () => {
     it('should return mapped results in the original order', () => {
         const source = [0, 1, 2];
         const fn = jest.fn(String);
-        Array.from(JIter.create(source).map(fn));
+        Array.from(JIter.CREATE(source).map(fn));
 
         expect(fn).toHaveBeenCalledTimes(source.length);
     });
