@@ -1,4 +1,8 @@
-import {JIter} from '../src/JIter';
+/**
+ * Tests JIter maping functionality
+ */
+
+import {JIter} from 'src/JIter';
 
 describe('JIter.map', () => {
     it('should not execute immediately', () => {
@@ -19,10 +23,16 @@ describe('JIter.map', () => {
 
     it('should execute the callback in source order', () => {
         const source = [0, 1, 2];
-        const fn = jest.fn((n: number, i: number) => expect(i).toBe(n));
+
+        const results: [number, number][] = [];
+        const fn = jest.fn((n: number, i: number) => results.push([i, n]));
         Array.from(JIter.CREATE(source).map(fn));
 
         expect(fn).toHaveBeenCalledTimes(source.length);
+
+        for (const [i, n] of results) {
+            expect(i).toBe(n);
+        }
     });
 
     it('should return mapped results in the original order', () => {
@@ -33,4 +43,3 @@ describe('JIter.map', () => {
         expect(fn).toHaveBeenCalledTimes(source.length);
     });
 });
-

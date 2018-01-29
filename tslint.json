@@ -15,6 +15,8 @@
             "property-declaration",
             "member-variable-declaration"
         ],
-        "no-inferrable-types": true
+        "no-inferrable-types": true,
+        "no-implicit-dependencies": false,
+        "no-submodule-imports": [true, "src"]
     }
 }

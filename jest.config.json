@@ -1,15 +1,20 @@
 {
     "transform": {
-        ".(ts|tsx)": "<rootDir>/node_modules/ts-jest/preprocessor.js"
+        "^.+\\.tsx?$": "ts-jest"
     },
-    "testResultsProcessor": "<rootDir>/node_modules/ts-jest/coverageprocessor.js",
-    "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
+    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
     "moduleFileExtensions": [
         "ts",
         "tsx",
-        "js"
+        "js",
+        "jsx",
+        "json",
+        "node"
     ],
+    "moduleDirectories": ["node_modules", "."],
     "globals": {
-      "__TS_CONFIG__": "./tsconfig.test.json"
+        "ts-jest": {
+            "tsConfigFile": "./tsconfig.test.json"
+        }
     }
 }

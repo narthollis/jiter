@@ -1,4 +1,8 @@
-import {JIter} from '../src/JIter';
+import {JIter} from 'src/JIter';
+
+/**
+ * Test JIter filters
+ */
 
 describe('JIter.filter', () => {
     it('should not execute immediately', () => {
@@ -27,9 +31,15 @@ describe('JIter.filter', () => {
 
     it('should execute the callback in source order', () => {
         const source = [0, 1, 2];
-        const fn = jest.fn((n: number, i: number) => expect(i).toBe(n));
+
+        const results: [number, number][] = [];
+        const fn = jest.fn((n: number, i: number) => results.push([i, n]));
         Array.from(JIter.CREATE(source).filter(fn));
 
         expect(fn).toHaveBeenCalledTimes(source.length);
+
+        for (const [i, n] of results) {
+            expect(i).toBe(n);
+        }
     });
 });
